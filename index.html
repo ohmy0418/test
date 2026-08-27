@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>간단 계산기</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="calculator">
+    <h1>간단 계산기</h1>
+
+    <div class="input-row">
+      <input type="text" id="operand-a" placeholder="숫자 입력" inputmode="decimal" />
+      <select id="operator">
+        <option value="+">+</option>
+        <option value="-">-</option>
+        <option value="*">*</option>
+        <option value="/">/</option>
+      </select>
+      <input type="text" id="operand-b" placeholder="숫자 입력" inputmode="decimal" />
+    </div>
+
+    <button id="calculate-btn" type="button">계산</button>
+
+    <div id="result-area" class="result-area" role="status"></div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
