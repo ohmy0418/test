@@ -7,6 +7,15 @@ description: Jira Issue를 기준으로 개발 준비 정보를 확인하고 구
 
 대상 이슈: $ARGUMENTS
 
+## 0단계: 작업 브랜치 준비
+- `git status`로 현재 uncommitted 변경사항이 있는지 확인해줘.
+  - 다른 이슈 작업 중이던 변경사항이 남아있다면(현재 브랜치명이 `$ARGUMENTS`가 아니고 uncommitted 변경이 있다면), 임의로 버리지 말고 사용자에게 알려줘 (커밋할지, stash 할지 확인).
+- 브랜치명은 이슈 키를 그대로 사용한다: `$ARGUMENTS`
+  - 로컬에 `$ARGUMENTS` 브랜치가 이미 있으면 그 브랜치로 `checkout`만 해줘 (재작업/이어서 작업하는 경우).
+  - 없으면 현재 기본 브랜치(main) 기준으로 `git checkout -b $ARGUMENTS`로 새로 생성해줘.
+  - 브랜치 생성/전환은 로컬 작업이라 별도 확인 없이 진행하되, 실행한 git 명령과 결과를 사용자에게 보여줘.
+- 이후 모든 구현 작업은 이 브랜치에서 진행한다.
+
 ## 1단계: Jira 정보 확인
 연결된 Atlassian(Jira) MCP로 `$ARGUMENTS` 이슈를 조회하고 다음을 확인해줘.
 - Parent Story (상위 Story의 목적/요구사항)
