@@ -6,6 +6,15 @@
 
 - `/jira-start <ISSUE-KEY>`: 작업 착수 시 Jira 이슈 정보를 확인하고 구현 계획을 수립합니다. 조회한 Jira 정보를 스냅샷으로 저장합니다.
 - `/jira-sync <ISSUE-KEY>`: 개발 도중 Jira 요구사항이 바뀌었는지 확인하고, 변경 영향과 추가 구현 범위를 분석합니다.
+- `/jira-story <업무 초안>`: `story-planner` 에이전트가 업무 초안을 Jira Story(목적/요구사항/AC/확인 필요)로 정리하고, 승인 시 Jira에 Story를 생성합니다.
+- `/jira-subtask <STORY-KEY>`: `sub-task-creator` 에이전트가 Story를 기반으로 Sub-task 계획(안)을 수립하고, 승인 시 Jira에 Sub-task를 생성합니다.
+- `/jira-readiness <ISSUE-KEY>`: `dev-readiness` 에이전트가 개발 착수 가능 여부(READY/AT RISK/NOT READY)를 판단합니다. Read-Only이며 Jira를 수정하지 않습니다. `/jira-start`의 준비 상태 판정도 내부적으로 이 에이전트를 사용합니다.
+
+### 기획 에이전트 (Story → Sub-task → Readiness)
+
+- 에이전트 정의는 `.claude/agents/story-planner.md`, `sub-task-creator.md`, `dev-readiness.md`에 있으며, 원본 설계 문서는 `agent-prompt/*.md`입니다. 원본 문서를 수정하면 `.claude/agents/*.md`에도 동일하게 반영해야 합니다.
+- 기본 흐름: Story Planner(Story 정리·생성) → Sub-task Creator(Story 기반 계획 수립·생성) → Dev Readiness(착수 가능 여부 확인) → `/jira-start`(구현 착수).
+- 각 단계는 사용자의 명확한 승인 없이 Jira를 생성·수정하지 않습니다. 이 흐름은 Jira 기획 단계이며, 브랜치/커밋 규칙은 실제 구현 착수(`/jira-start` 이후)부터 적용됩니다.
 
 ## 브랜치 규칙
 
