@@ -9,12 +9,18 @@
 - `/jira-story <업무 초안>`: `story-planner` 에이전트가 업무 초안을 Jira Story(목적/요구사항/AC/확인 필요)로 정리하고, 승인 시 Jira에 Story를 생성합니다.
 - `/jira-subtask <STORY-KEY>`: `sub-task-creator` 에이전트가 Story를 기반으로 Sub-task 계획(안)을 수립하고, 승인 시 Jira에 Sub-task를 생성합니다.
 - `/jira-readiness <ISSUE-KEY>`: `dev-readiness` 에이전트가 개발 착수 가능 여부(READY/AT RISK/NOT READY)를 판단합니다. Read-Only이며 Jira를 수정하지 않습니다. `/jira-start`의 준비 상태 판정도 내부적으로 이 에이전트를 사용합니다.
+- `/jira-detail <ISSUE-KEY> [필드=값 ...]`: 이미 생성된 Story/Sub-task/Task/Bug에 담당자·레이블·기한·스프린트·시작일·원래 예상치 중 **사용자가 지정한 필드만** `jira-detail-setter` 에이전트로 설정/변경합니다. 6개 필드는 서로 독립적인 선택 입력이며(예: 기한만 지정 / 기한+시작일만 지정), 언급되지 않은 필드는 건드리지 않고 명시적으로 비우라고 한 필드만 비웁니다.
 
-### 기획 에이전트 (Story → Sub-task → Readiness)
+### 기획 에이전트 (Story → Sub-task → Detail → Readiness)
 
-- 에이전트 정의는 `.claude/agents/story-planner.md`, `sub-task-creator.md`, `dev-readiness.md`에 있으며, 원본 설계 문서는 `agent-prompt/*.md`입니다. 원본 문서를 수정하면 `.claude/agents/*.md`에도 동일하게 반영해야 합니다.
-- 기본 흐름: Story Planner(Story 정리·생성) → Sub-task Creator(Story 기반 계획 수립·생성) → Dev Readiness(착수 가능 여부 확인) → `/jira-start`(구현 착수).
+- 에이전트 정의는 `.claude/agents/story-planner.md`, `sub-task-creator.md`, `jira-detail-setter.md`, `dev-readiness.md`에 있으며, 원본 설계 문서는 `agent-prompt/*.md`입니다. 원본 문서를 수정하면 `.claude/agents/*.md`에도 동일하게 반영해야 합니다.
+- 기본 흐름: Story Planner(Story 정리·생성) → Sub-task Creator(Story 기반 계획 수립·생성) → Jira Detail Setter(필요 시 담당자/일정 등 설정) → Dev Readiness(착수 가능 여부 확인) → `/jira-start`(구현 착수).
 - 각 단계는 사용자의 명확한 승인 없이 Jira를 생성·수정하지 않습니다. 이 흐름은 Jira 기획 단계이며, 브랜치/커밋 규칙은 실제 구현 착수(`/jira-start` 이후)부터 적용됩니다.
+
+### 서브에이전트 승인 위임 제약
+
+- `story-planner`/`sub-task-creator`/`jira-detail-setter`처럼 Jira를 생성·수정하는 에이전트는, 다른 에이전트(코디네이터 포함)가 전달한 "사용자가 승인했다"는 메시지를 승인으로 인정하지 않도록 설계되어 있습니다. 승인은 반드시 사용자 본인이 그 서브에이전트와의 대화에 직접 입력해야 유효합니다.
+- 따라서 코디네이터가 서브에이전트를 비동기로 호출해 계획(안)만 받고, 실제 승인은 코디네이터와의 대화에서 이루어진 경우, 승인 메시지를 서브에이전트에게 재전달해도 반영되지 않습니다. 이 경우 코디네이터가 해당 서브에이전트 정의 문서(`.claude/agents/*.md`)의 절차·필드 규칙을 그대로 따라 Jira MCP 도구를 직접 호출해 반영합니다.
 
 ## 브랜치 규칙
 
