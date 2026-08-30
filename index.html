@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>할 일 관리</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="app-header">
+      <h1>할 일 관리</h1>
+    </header>
+
+    <section id="filters">
+      <div id="status-filter" class="filter-group" role="group" aria-label="완료 상태 필터">
+        <button type="button" class="filter-btn" data-status="all" aria-pressed="true">전체</button>
+        <button type="button" class="filter-btn" data-status="incomplete" aria-pressed="false">미완료</button>
+        <button type="button" class="filter-btn" data-status="completed" aria-pressed="false">완료</button>
+      </div>
+
+      <div class="filter-group">
+        <label for="user-filter">사용자</label>
+        <select id="user-filter">
+          <option value="all">전체 사용자</option>
+        </select>
+      </div>
+    </section>
+
+    <section id="status-area">
+      <div id="loading-indicator" class="hidden">불러오는 중...</div>
+      <div id="error-message" class="hidden" role="alert"></div>
+    </section>
+
+    <section id="todo-list-section">
+      <ul id="todo-list">
+        <!-- .todo-item 목록 항목은 GAF-45에서 렌더링 -->
+      </ul>
+
+      <button type="button" id="load-more-btn">더보기</button>
+    </section>
+
+    <section id="todo-form-section">
+      <form id="todo-form">
+        <label for="todo-title">새 할 일</label>
+        <input type="text" id="todo-title" name="todo-title" placeholder="할 일을 입력하세요" required />
+        <button type="submit">추가</button>
+      </form>
+    </section>
+  </div>
+</body>
+</html>
