@@ -20,9 +20,18 @@
   var renderedCount = 0;
   var currentStatusFilter = "all";
   var currentUserFilter = "all";
+  var pendingRequestCount = 0;
 
-  function setLoading(isLoading) {
-    loadingEl.classList.toggle("hidden", !isLoading);
+  function beginLoading() {
+    pendingRequestCount += 1;
+    loadingEl.classList.remove("hidden");
+  }
+
+  function endLoading() {
+    pendingRequestCount = Math.max(0, pendingRequestCount - 1);
+    if (pendingRequestCount === 0) {
+      loadingEl.classList.add("hidden");
+    }
   }
 
   function showError(message) {
@@ -129,6 +138,7 @@
     todo.completed = !previousCompleted;
     rerenderList();
     hideError();
+    beginLoading();
 
     fetch(TODOS_URL + "/" + id, {
       method: "PATCH",
@@ -157,6 +167,9 @@
         todo.completed = previousCompleted;
         rerenderList();
         showError(error.message || "완료 상태를 변경하지 못했습니다.");
+      })
+      .finally(function () {
+        endLoading();
       });
   }
 
@@ -177,6 +190,7 @@
     var userId = currentUserFilter !== "all" ? currentUserFilter : DEFAULT_USER_ID;
 
     hideError();
+    beginLoading();
 
     fetch(TODOS_URL, {
       method: "POST",
@@ -209,10 +223,16 @@
       })
       .catch(function (error) {
         showError(error.message || "할 일을 추가하지 못했습니다.");
+      })
+      .finally(function () {
+        endLoading();
       });
   }
 
   function loadUsers() {
+    hideError();
+    beginLoading();
+
     fetch(USERS_URL)
       .then(function (response) {
         if (!response.ok) {
@@ -230,12 +250,15 @@
       })
       .catch(function (error) {
         showError(error.message || "사용자 목록을 불러오지 못했습니다.");
+      })
+      .finally(function () {
+        endLoading();
       });
   }
 
   function loadTodos() {
     hideError();
-    setLoading(true);
+    beginLoading();
 
     fetch(TODOS_URL)
       .then(function (response) {
@@ -252,7 +275,7 @@
         showError(error.message || "할 일 목록을 불러오지 못했습니다.");
       })
       .finally(function () {
-        setLoading(false);
+        endLoading();
       });
   }
 
