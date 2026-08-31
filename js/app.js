@@ -1,5 +1,6 @@
 (function () {
   var TODOS_URL = "https://jsonplaceholder.typicode.com/todos";
+  var USERS_URL = "https://jsonplaceholder.typicode.com/users";
   var PAGE_SIZE = 10;
 
   var todoListEl = document.getElementById("todo-list");
@@ -8,10 +9,12 @@
   var errorEl = document.getElementById("error-message");
   var statusFilterEl = document.getElementById("status-filter");
   var filterBtns = statusFilterEl.querySelectorAll(".filter-btn");
+  var userFilterEl = document.getElementById("user-filter");
 
   var allTodos = [];
   var renderedCount = 0;
   var currentStatusFilter = "all";
+  var currentUserFilter = "all";
 
   function setLoading(isLoading) {
     loadingEl.classList.toggle("hidden", !isLoading);
@@ -38,17 +41,18 @@
   }
 
   function getVisibleTodos() {
-    if (currentStatusFilter === "completed") {
-      return allTodos.filter(function (todo) {
-        return todo.completed;
-      });
-    }
-    if (currentStatusFilter === "incomplete") {
-      return allTodos.filter(function (todo) {
-        return !todo.completed;
-      });
-    }
-    return allTodos;
+    return allTodos.filter(function (todo) {
+      if (currentStatusFilter === "completed" && !todo.completed) {
+        return false;
+      }
+      if (currentStatusFilter === "incomplete" && todo.completed) {
+        return false;
+      }
+      if (currentUserFilter !== "all" && String(todo.userId) !== currentUserFilter) {
+        return false;
+      }
+      return true;
+    });
   }
 
   function updateLoadMoreVisibility() {
@@ -73,6 +77,34 @@
     renderedCount = 0;
     todoListEl.innerHTML = "";
     renderNextPage();
+  }
+
+  function applyUserFilter(userId) {
+    currentUserFilter = userId;
+    renderedCount = 0;
+    todoListEl.innerHTML = "";
+    renderNextPage();
+  }
+
+  function loadUsers() {
+    fetch(USERS_URL)
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error("사용자 목록을 불러오지 못했습니다. (" + response.status + ")");
+        }
+        return response.json();
+      })
+      .then(function (users) {
+        users.forEach(function (user) {
+          var option = document.createElement("option");
+          option.value = String(user.id);
+          option.textContent = user.name;
+          userFilterEl.appendChild(option);
+        });
+      })
+      .catch(function (error) {
+        showError(error.message || "사용자 목록을 불러오지 못했습니다.");
+      });
   }
 
   function loadTodos() {
@@ -108,5 +140,10 @@
     });
   });
 
+  userFilterEl.addEventListener("change", function () {
+    applyUserFilter(userFilterEl.value);
+  });
+
   loadTodos();
+  loadUsers();
 })();
