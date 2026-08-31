@@ -100,6 +100,17 @@ body {
   padding: 10px 4px;
   border-bottom: 1px solid #ececef;
   font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.todo-item:hover {
+  background-color: #f7f7f8;
+}
+
+.todo-item:focus-visible {
+  outline: 2px solid #1a1a1a;
+  outline-offset: -2px;
 }
 
 .todo-item.completed {

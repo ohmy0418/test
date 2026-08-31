@@ -3,6 +3,7 @@
   var USERS_URL = "https://jsonplaceholder.typicode.com/users";
   var PAGE_SIZE = 10;
   var LOCAL_TODOS_KEY = "localTodos";
+  var TOGGLE_OVERRIDES_KEY = "todoToggleOverrides";
   var DEFAULT_USER_ID = "1";
 
   var todoListEl = document.getElementById("todo-list");
@@ -41,6 +42,9 @@
     li.dataset.userId = todo.userId;
     li.dataset.completed = todo.completed;
     li.textContent = todo.title;
+    li.setAttribute("role", "button");
+    li.setAttribute("tabindex", "0");
+    li.setAttribute("aria-pressed", String(todo.completed));
     return li;
   }
 
@@ -89,6 +93,71 @@
 
   function saveLocalTodos(localTodos) {
     localStorage.setItem(LOCAL_TODOS_KEY, JSON.stringify(localTodos));
+  }
+
+  function getToggleOverrides() {
+    try {
+      return JSON.parse(localStorage.getItem(TOGGLE_OVERRIDES_KEY)) || {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveToggleOverrides(overrides) {
+    localStorage.setItem(TOGGLE_OVERRIDES_KEY, JSON.stringify(overrides));
+  }
+
+  function applyToggleOverrides(todos) {
+    var overrides = getToggleOverrides();
+    todos.forEach(function (todo) {
+      if (Object.prototype.hasOwnProperty.call(overrides, todo.id)) {
+        todo.completed = overrides[todo.id];
+      }
+    });
+    return todos;
+  }
+
+  function toggleTodo(id) {
+    var todo = allTodos.find(function (t) {
+      return t.id === id;
+    });
+    if (!todo) {
+      return;
+    }
+
+    var previousCompleted = todo.completed;
+    todo.completed = !previousCompleted;
+    rerenderList();
+    hideError();
+
+    fetch(TODOS_URL + "/" + id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ completed: todo.completed })
+    })
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error("완료 상태를 변경하지 못했습니다. (" + response.status + ")");
+        }
+
+        var localTodos = getLocalTodos();
+        var localTodo = localTodos.find(function (t) {
+          return t.id === id;
+        });
+        if (localTodo) {
+          localTodo.completed = todo.completed;
+          saveLocalTodos(localTodos);
+        } else {
+          var overrides = getToggleOverrides();
+          overrides[id] = todo.completed;
+          saveToggleOverrides(overrides);
+        }
+      })
+      .catch(function (error) {
+        todo.completed = previousCompleted;
+        rerenderList();
+        showError(error.message || "완료 상태를 변경하지 못했습니다.");
+      });
   }
 
   function applyStatusFilter(status) {
@@ -176,7 +245,7 @@
         return response.json();
       })
       .then(function (data) {
-        allTodos = getLocalTodos().concat(data);
+        allTodos = applyToggleOverrides(getLocalTodos().concat(data));
         rerenderList();
       })
       .catch(function (error) {
@@ -188,6 +257,24 @@
   }
 
   loadMoreBtn.addEventListener("click", renderNextPage);
+
+  todoListEl.addEventListener("click", function (event) {
+    var li = event.target.closest(".todo-item");
+    if (li) {
+      toggleTodo(Number(li.dataset.id));
+    }
+  });
+
+  todoListEl.addEventListener("keydown", function (event) {
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+    var li = event.target.closest(".todo-item");
+    if (li) {
+      event.preventDefault();
+      toggleTodo(Number(li.dataset.id));
+    }
+  });
 
   filterBtns.forEach(function (btn) {
     btn.addEventListener("click", function () {
