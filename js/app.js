@@ -6,9 +6,12 @@
   var loadMoreBtn = document.getElementById("load-more-btn");
   var loadingEl = document.getElementById("loading-indicator");
   var errorEl = document.getElementById("error-message");
+  var statusFilterEl = document.getElementById("status-filter");
+  var filterBtns = statusFilterEl.querySelectorAll(".filter-btn");
 
   var allTodos = [];
   var renderedCount = 0;
+  var currentStatusFilter = "all";
 
   function setLoading(isLoading) {
     loadingEl.classList.toggle("hidden", !isLoading);
@@ -34,18 +37,42 @@
     return li;
   }
 
+  function getVisibleTodos() {
+    if (currentStatusFilter === "completed") {
+      return allTodos.filter(function (todo) {
+        return todo.completed;
+      });
+    }
+    if (currentStatusFilter === "incomplete") {
+      return allTodos.filter(function (todo) {
+        return !todo.completed;
+      });
+    }
+    return allTodos;
+  }
+
   function updateLoadMoreVisibility() {
-    var hasMore = renderedCount < allTodos.length;
+    var hasMore = renderedCount < getVisibleTodos().length;
     loadMoreBtn.classList.toggle("hidden", !hasMore);
   }
 
   function renderNextPage() {
-    var nextItems = allTodos.slice(renderedCount, renderedCount + PAGE_SIZE);
+    var nextItems = getVisibleTodos().slice(renderedCount, renderedCount + PAGE_SIZE);
     nextItems.forEach(function (todo) {
       todoListEl.appendChild(createTodoItem(todo));
     });
     renderedCount += nextItems.length;
     updateLoadMoreVisibility();
+  }
+
+  function applyStatusFilter(status) {
+    currentStatusFilter = status;
+    filterBtns.forEach(function (btn) {
+      btn.setAttribute("aria-pressed", String(btn.dataset.status === status));
+    });
+    renderedCount = 0;
+    todoListEl.innerHTML = "";
+    renderNextPage();
   }
 
   function loadTodos() {
@@ -74,6 +101,12 @@
   }
 
   loadMoreBtn.addEventListener("click", renderNextPage);
+
+  filterBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      applyStatusFilter(btn.dataset.status);
+    });
+  });
 
   loadTodos();
 })();
