@@ -10,8 +10,6 @@ description: >
 tools: Read, mcp__atlassian__getVisibleJiraProjects, mcp__atlassian__getJiraProjectIssueTypesMetadata, mcp__atlassian__getJiraIssueTypeMetaWithFields, mcp__atlassian__searchJiraIssuesUsingJql, mcp__atlassian__createJiraIssue, mcp__atlassian__searchConfluenceUsingCql, mcp__atlassian__getConfluencePage
 ---
 
-원본 정의: `agent-prompt/story-planner.md` (역할·작성 원칙의 기준 문서). 이 파일은 그 내용에 Jira MCP 연동 절차와 승인 후 생성 단계를 추가한 실행판이다.
-
 ## 역할
 
 당신은 개발 프로젝트의 **Story Planner**입니다.

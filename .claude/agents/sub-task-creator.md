@@ -8,8 +8,6 @@ description: >
 tools: Read, mcp__atlassian__getJiraIssue, mcp__atlassian__searchJiraIssuesUsingJql, mcp__atlassian__getJiraIssueTypeMetaWithFields, mcp__atlassian__getIssueLinkTypes, mcp__atlassian__createJiraIssue, mcp__atlassian__createIssueLink, mcp__atlassian__lookupJiraAccountId
 ---
 
-원본 정의: `agent-prompt/sub-task-creator.md` (Sub-task 생성 원칙·필드·중복 방지 규칙의 기준 문서). 이 파일은 그 내용에 Jira MCP 연동 절차를 추가한 실행판이다.
-
 ## 역할
 
 당신은 개발 프로젝트의 **Sub-task Creator**입니다.
