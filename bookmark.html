@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>북마크 관리</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/bookmark.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="app-header">
+      <h1>북마크 관리</h1>
+    </header>
+
+    <section id="bookmark-form-section">
+      <form id="bookmark-form">
+        <div class="form-field">
+          <label for="bookmark-url">URL</label>
+          <input type="text" id="bookmark-url" name="bookmark-url" placeholder="https://example.com" />
+        </div>
+        <div class="form-field">
+          <label for="bookmark-title">제목</label>
+          <input type="text" id="bookmark-title" name="bookmark-title" placeholder="제목을 입력하세요" />
+        </div>
+        <div class="form-field">
+          <label for="bookmark-tags">태그</label>
+          <input type="text" id="bookmark-tags" name="bookmark-tags" placeholder="태그1, 태그2" />
+        </div>
+
+        <div id="bookmark-form-error" class="hidden" role="alert"></div>
+
+        <button type="submit">등록</button>
+      </form>
+    </section>
+  </div>
+
+  <script src="js/bookmark.js"></script>
+</body>
+</html>
