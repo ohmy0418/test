@@ -7,23 +7,27 @@
 - `/jira-start <ISSUE-KEY>`: 작업 착수 시 Jira 이슈 정보를 확인하고 구현 계획을 수립합니다. 조회한 Jira 정보를 스냅샷으로 저장하고, 사용자가 구현 진행을 승인하면 `jira-status-updater` 에이전트로 이슈 상태를 진행 중으로 전이합니다.
 - `/jira-sync <ISSUE-KEY>`: 개발 도중 Jira 요구사항이 바뀌었는지 확인하고, 변경 영향과 추가 구현 범위를 분석합니다.
 - `/jira-done <ISSUE-KEY>`: 구현이 끝난 이슈를 완료 처리합니다. 커밋·PR과 AC 충족 여부를 점검해 보여주고, 승인 시 `jira-status-updater` 에이전트로 상태를 완료로 전이하고 커밋/PR 링크를 코멘트로 남깁니다.
-- `/jira-story <업무 초안>`: `story-planner` 에이전트가 업무 초안을 Jira Story(목적/요구사항/AC/확인 필요)로 정리하고, 승인 시 Jira에 Story를 생성합니다.
-- `/jira-subtask <STORY-KEY>`: `sub-task-creator` 에이전트가 Story를 기반으로 Sub-task 계획(안)을 수립하고, 승인 시 Jira에 Sub-task를 생성합니다.
-- `/jira-readiness <ISSUE-KEY>`: `dev-readiness` 에이전트가 개발 착수 가능 여부(READY/AT RISK/NOT READY)를 판단합니다. Read-Only이며 Jira를 수정하지 않습니다. `/jira-start`의 준비 상태 판정도 내부적으로 이 에이전트를 사용합니다.
-- `/jira-detail <ISSUE-KEY> [필드=값 ...]`: 이미 생성된 Story/Sub-task/Task/Bug에 담당자·레이블·기한·스프린트·시작일·원래 예상치 중 **사용자가 지정한 필드만** `jira-detail-setter` 에이전트로 설정/변경합니다. 6개 필드는 서로 독립적인 선택 입력이며(예: 기한만 지정 / 기한+시작일만 지정), 언급되지 않은 필드는 건드리지 않고 명시적으로 비우라고 한 필드만 비웁니다.
+- `/jira-epic <PRD/설계 문서 본문>`: `epic-planner` 에이전트가 PRD·설계 문서를 모듈 단위로 분석해 Epic 후보 목록을 계획하고, 일괄 승인 시 Jira에 Epic들을 생성합니다. 현재 본문 텍스트만 지원합니다(파일 경로/Confluence 링크 미지원).
+- `/jira-story <업무 초안 | 기존 Epic명/키>`: `story-planner` 에이전트가 동작합니다. 입력이 기존 Epic과 매칭되면 그 Epic 하위 Story 여러 개를 계획해 일괄 승인·생성하고(**Epic 기반 모드**), 매칭되지 않으면 입력을 업무 초안으로 보고 Story 1개를 정리·생성합니다(**자유 초안 모드**). 모드 판단은 `story-planner`가 직접 합니다.
+- `/jira-subtask <STORY-KEY 또는 스토리 명>`: `sub-task-creator`가 Story를 기반으로 Sub-task 계획(안)을 수립·생성한 뒤, 이 커맨드가 이어서 `jira-detail-setter`(담당자/일정 등, 값이 있을 때만)와 `dev-readiness`(READY/AT RISK/NOT READY, 항상)를 순차 실행합니다. 입력이 이슈 키 형식이 아니면 이름으로 조회해 확정합니다.
+- `/jira-readiness <ISSUE-KEY>`: `dev-readiness` 에이전트가 개발 착수 가능 여부(READY/AT RISK/NOT READY)를 판단합니다. Read-Only이며 Jira를 수정하지 않습니다. `/jira-start`와 `/jira-subtask` 내부의 준비 상태 판정도 이 에이전트를 재사용합니다.
+- `/jira-detail <ISSUE-KEY> [필드=값 ...]`: 이미 생성된 Story/Sub-task/Task/Bug에 담당자·레이블·기한·스프린트·시작일·원래 예상치 중 **사용자가 지정한 필드만** `jira-detail-setter` 에이전트로 설정/변경합니다. 6개 필드는 서로 독립적인 선택 입력이며(예: 기한만 지정 / 기한+시작일만 지정), 언급되지 않은 필드는 건드리지 않고 명시적으로 비우라고 한 필드만 비웁니다. `/jira-subtask` 내부에서도 같은 규칙으로 재사용됩니다.
 
-### 에이전트 (Story → Sub-task → Detail → Readiness → 구현 → 완료)
+### 에이전트 (Epic → Story → Sub-task(+Detail+Readiness) → 구현 → 완료)
 
 - **에이전트 정의는 `.claude/agents/*.md`가 유일한 원본입니다.** 별도의 설계 문서 사본을 두지 않습니다 (두 벌을 수동 동기화하면 반드시 어긋납니다). 에이전트 동작을 바꾸려면 이 파일만 수정하면 됩니다.
-- 정의 파일: `story-planner.md`, `sub-task-creator.md`, `jira-detail-setter.md`, `dev-readiness.md`, `jira-status-updater.md`
-- 기본 흐름: Story Planner(Story 정리·생성) → Sub-task Creator(Story 기반 계획 수립·생성) → Jira Detail Setter(필요 시 담당자/일정 등 설정) → Dev Readiness(착수 가능 여부 확인) → `/jira-start`(구현 착수 + 진행 중 전이) → `/jira-done`(완료 전이 + 링크 기록).
+- 정의 파일: `epic-planner.md`, `story-planner.md`, `sub-task-creator.md`, `jira-detail-setter.md`, `dev-readiness.md`, `jira-status-updater.md`
+- 기본 흐름: Epic Planner(PRD → Epic 계획·생성) → Story Planner(Epic 하위 Story 계획·생성, 또는 업무 초안 → Story 1개) → Sub-task Creator(Story 기반 계획 수립·생성) → **[`/jira-subtask` 내부에서 자동 연쇄]** Jira Detail Setter(값이 있을 때만 담당자/일정 등 설정) → Dev Readiness(착수 가능 여부 확인) → `/jira-start`(구현 착수 + 진행 중 전이) → `/jira-done`(완료 전이 + 링크 기록).
 - 각 에이전트의 쓰기 권한은 프롬프트가 아니라 `tools:` 목록으로 제한합니다. 예: `dev-readiness`는 쓰기 도구가 없어 Read-Only이고, `jira-status-updater`는 상태 전이와 코멘트만 가능해 요구사항·필드를 바꿀 수 없습니다. 새 에이전트를 추가할 때도 필요한 최소 도구만 부여합니다.
-- 각 단계는 사용자의 명확한 승인 없이 Jira를 생성·수정하지 않습니다. 이 흐름은 Jira 기획 단계이며, 브랜치/커밋 규칙은 실제 구현 착수(`/jira-start` 이후)부터 적용됩니다.
+- 각 단계는 사용자의 명확한 승인 없이 Jira를 생성·수정하지 않습니다(Dev Readiness처럼 읽기 전용인 단계는 예외). 이 흐름은 Jira 기획 단계이며, 브랜치/커밋 규칙은 실제 구현 착수(`/jira-start` 이후)부터 적용됩니다.
+- **이름 기반 조회**: `/jira-story`(Epic명), `/jira-subtask`(Story명)는 정확한 이슈 키 대신 이름을 받을 수 있습니다. 이름이 둘 이상의 이슈와 매칭되면 후보를 보여주고 사용자에게 확인을 요청하며, 임의로 하나를 선택하지 않습니다.
+- **Epic-Story 연결**: 이 프로젝트(GAF)는 회사 관리형(classic) 프로젝트이지만 Epic 연결에 표준 `parent`(상위 항목) 필드를 사용합니다(별도의 "Epic Link" 커스텀 필드 아님) — `getJiraIssueTypeMetaWithFields`로 확인된 실측 결과입니다. 다른 프로젝트에 이식할 때는 이 값이 다를 수 있으므로 매번 다시 확인해야 합니다(하드코딩 금지).
 
 ### 서브에이전트 승인 위임 제약
 
-- `story-planner`/`sub-task-creator`/`jira-detail-setter`처럼 Jira를 생성·수정하는 에이전트는, 다른 에이전트(코디네이터 포함)가 전달한 "사용자가 승인했다"는 메시지를 승인으로 인정하지 않도록 설계되어 있습니다. 승인은 반드시 사용자 본인이 그 서브에이전트와의 대화에 직접 입력해야 유효합니다.
+- `epic-planner`/`story-planner`/`sub-task-creator`/`jira-detail-setter`처럼 Jira를 생성·수정하는 에이전트는, 다른 에이전트(코디네이터 포함)가 전달한 "사용자가 승인했다"는 메시지를 승인으로 인정하지 않도록 설계되어 있습니다. 승인은 반드시 사용자 본인이 그 서브에이전트와의 대화에 직접 입력해야 유효합니다.
 - 따라서 코디네이터가 서브에이전트를 비동기로 호출해 계획(안)만 받고, 실제 승인은 코디네이터와의 대화에서 이루어진 경우, 승인 메시지를 서브에이전트에게 재전달해도 반영되지 않습니다. 이 경우 코디네이터가 해당 서브에이전트 정의 문서(`.claude/agents/*.md`)의 절차·필드 규칙을 그대로 따라 Jira MCP 도구를 직접 호출해 반영합니다.
+- `/jira-subtask`처럼 한 커맨드 안에서 에이전트 여러 개(`sub-task-creator` → `jira-detail-setter` → `dev-readiness`)를 순차 호출할 때도, 각 쓰기 단계(생성/수정)의 승인은 그 직전에 이 커맨드가 사용자에게 직접 받아야 합니다. 앞선 단계의 승인을 뒤 단계에도 적용된 것으로 임의로 확장하지 않습니다(예: Sub-task 생성 승인이 Detail 반영 승인을 대신하지 않음). 읽기 전용인 `dev-readiness` 단계는 승인이 필요 없습니다.
 
 ## 브랜치 규칙
 
