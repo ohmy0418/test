@@ -7,7 +7,7 @@
 - `/jira-start <ISSUE-KEY>`: 작업 착수 시 Jira 이슈 정보를 확인하고 구현 계획을 수립합니다. 조회한 Jira 정보를 스냅샷으로 저장하고, 사용자가 구현 진행을 승인하면 `jira-status-updater` 에이전트로 이슈 상태를 진행 중으로 전이합니다.
 - `/jira-sync <ISSUE-KEY>`: 개발 도중 Jira 요구사항이 바뀌었는지 확인하고, 변경 영향과 추가 구현 범위를 분석합니다.
 - `/jira-done <ISSUE-KEY>`: 구현이 끝난 이슈를 완료 처리합니다. 커밋·PR과 AC 충족 여부를 점검해 보여주고, 승인 시 `jira-status-updater` 에이전트로 상태를 완료로 전이하고 커밋/PR 링크를 코멘트로 남깁니다.
-- `/jira-epic <PRD/설계 문서 본문>`: `epic-planner` 에이전트가 PRD·설계 문서를 모듈 단위로 분석해 Epic 후보 목록을 계획하고, 일괄 승인 시 Jira에 Epic들을 생성합니다. 현재 본문 텍스트만 지원합니다(파일 경로/Confluence 링크 미지원).
+- `/jira-epic <PRD/설계 문서 본문 | PRD 파일 경로>`: `epic-planner` 에이전트가 PRD·설계 문서를 모듈 단위로 분석해 Epic 후보 목록을 계획하고, 일괄 승인 시 Jira에 Epic들을 생성합니다. 본문 텍스트 붙여넣기와 저장소 내 파일 경로(`docs/prd/*.md` 권장 — PRD 버전 관리를 위해) 둘 다 지원하며, 어느 쪽인지는 에이전트가 직접 판단합니다. Confluence 링크는 아직 미지원입니다.
 - `/jira-story <업무 초안 | 기존 Epic명/키>`: `story-planner` 에이전트가 동작합니다. 입력이 기존 Epic과 매칭되면 그 Epic 하위 Story 여러 개를 계획해 일괄 승인·생성하고(**Epic 기반 모드**), 매칭되지 않으면 입력을 업무 초안으로 보고 Story 1개를 정리·생성합니다(**자유 초안 모드**). 모드 판단은 `story-planner`가 직접 합니다.
 - `/jira-subtask <STORY-KEY 또는 스토리 명>`: `sub-task-creator`가 Story를 기반으로 Sub-task 계획(안)을 수립·생성한 뒤, 이 커맨드가 이어서 `jira-detail-setter`(담당자/일정 등, 값이 있을 때만)와 `dev-readiness`(READY/AT RISK/NOT READY, 항상)를 순차 실행합니다. 입력이 이슈 키 형식이 아니면 이름으로 조회해 확정합니다.
 - `/jira-readiness <ISSUE-KEY>`: `dev-readiness` 에이전트가 개발 착수 가능 여부(READY/AT RISK/NOT READY)를 판단합니다. Read-Only이며 Jira를 수정하지 않습니다. `/jira-start`와 `/jira-subtask` 내부의 준비 상태 판정도 이 에이전트를 재사용합니다.
